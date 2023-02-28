@@ -5,3 +5,6 @@
 # python:
 
 pycache
+
+# directories
+data/
