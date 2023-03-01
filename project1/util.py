@@ -5,6 +5,7 @@ import numpy as np
 from typing import Tuple
 import matplotlib.pyplot as plt
 import csv
+from scipy import stats
 
 def accuracy(y_predicted: np.ndarray, y: np.ndarray) -> float:
     """
@@ -98,3 +99,55 @@ def print_digit(x: np.ndarray):
     '''
     x_img = vector2matrix(x)
     plt.imshow(x_img, cmap='gray_r')
+
+def distance(x1: np.ndarray, x2: np.ndarray) -> float:
+    """
+    Get the Euclidian distance between two points.
+
+    Args:
+        x1 (np.ndarray): the first point
+        x2 (np.ndarray): the second point
+
+    Returns:
+        float: the Euclidian distance between the points.
+    """
+    return np.linalg.norm(x1 - x2)
+
+def entropy(labels: np.ndarray, partitions: np.ndarray) -> float:
+    """
+    Get the entropy of a node or set of child nodes.
+
+    Args:
+        labels (np.ndarray): the set of labels at this node/nodes.
+        partitions (np.ndarray): if getting the weighted entropy of multiple
+            child nodes, this is an array of the same length as 'labels' that
+            represents the index of the partition for each label.
+            Otherwise, this is None.
+    
+    Returns:
+        float: the entropy of this node/nodes.
+    """
+    if partitions is None:
+        counts = {}
+        for label in labels:
+            if label not in counts:
+                counts[label] = 1
+            else:
+                counts[label] += 1
+        
+        h = 0
+        for key in counts:
+            p = counts[key] / len(labels)
+            h += -p * np.log(p)
+        
+        return h
+    else:
+        h = 0
+
+        num_indices = int(np.max(partitions) + 1)
+        for i in range(num_indices):
+            rows = np.where(partitions==i)
+            partition = labels[rows]
+            h += entropy(partition, None) * (len(partition) / len(labels))
+        
+        return h
