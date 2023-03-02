@@ -13,10 +13,10 @@ class FeedForwardNN(Classifier):
 
     def train(self, training_data: np.ndarray, training_labels: np.ndarray) -> None:
         print("Fitting Feed Forward Net...")
-        self.net = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-        self.net.fit(training_data, training_labels)
+        self.net = MLPClassifier(learning_rate_init=0.005, alpha=1e-4, hidden_layer_sizes=(16,), random_state=1, max_iter=1000)
+        self.net.fit(training_data, training_labels,)
         print("Finished!")
 
 
     def infer(self, testing_data: np.ndarray) -> np.ndarray:
-        pass
+        return self.net.predict(testing_data)

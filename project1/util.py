@@ -151,3 +151,19 @@ def entropy(labels: np.ndarray, partitions: np.ndarray) -> float:
             h += entropy(partition, None) * (len(partition) / len(labels))
         
         return h
+
+def sample_data(X: np.ndarray, y: np.ndarray=None, p=0.10):
+    '''
+    Takes a random sample of the the data.
+    '''
+    if type(X) != np.ndarray or (type(y) != np.ndarray and y is not None):
+        raise TypeError('X and y should be numpy arrays')
+    if not((p <= 1.0) and (p >= 0.0)):
+        raise ValueError('percentage should be in range [0,1]')
+    num_examples = X.shape[0]
+    num_samples = int(p*num_examples)
+    rand_indices = np.random.choice(range(0,num_examples), size=num_samples, replace=False)
+    if y is None:
+        return X[rand_indices,:]
+    else:
+        return X[rand_indices,:], y[rand_indices]
