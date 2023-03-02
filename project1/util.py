@@ -167,3 +167,26 @@ def sample_data(X: np.ndarray, y: np.ndarray=None, p=0.10):
         return X[rand_indices,:]
     else:
         return X[rand_indices,:], y[rand_indices]
+    
+
+def cross_validation_split(X, y, folds=5):
+    if type(X) is not np.ndarray or type(y) is not np.ndarray:
+        raise TypeError('X and y should be numpy arrays')
+    num_examples = np.size(y)
+    if type(folds) is not int or folds > num_examples or folds < 1:
+        raise TypeError('folds should be a positive integer <= sample size')
+    rand_indices = list(range(num_examples))
+    np.random.shuffle(rand_indices)
+    X_shuffled = X[rand_indices]
+    y_shuffled = y[rand_indices]
+
+    data = () # in form ((X_train,y_train,X_test,y_test),(X_...)...)
+    for fold in (range(folds)):
+        i = int((fold/folds)*num_examples)
+        j = int(((fold+1)/folds)*num_examples)
+        X_train = np.concatenate((X[0:i],X[j:]))
+        y_train = np.concatenate((y[0:i],y[j:]))
+        X_test = X[i:j]
+        y_test = y[i:j]
+        data += ((X_train, y_train, X_test, y_test),)
+    return data
