@@ -45,10 +45,10 @@ class DecisionTree(Classifier):
             X (np.ndarray): the set of remaining training examples.
             y (np.ndarray): the set of remaining training labels.
         """
-        if depth == self.max_depth:
+        if depth == self.max_depth or len(y) == 0:
             # set up this node as a majority classifier
             node.label = stats.mode(y)[0][0] if len(y) > 0 else 0.0
-            print(f"    > assigning node LABEL {node.label}")
+            print(f"    > assigning node LABEL {node.label}                     ", end="\r")
             return
 
         best_attribute, best_info = 0, np.inf
@@ -60,7 +60,7 @@ class DecisionTree(Classifier):
             if child_info < best_info:
                 best_attribute, best_info = attribute, child_info
 
-        print(f"    > assigning node attribute {best_attribute}")
+        print(f"    > assigning node attribute {best_attribute}                     ", end="\r")
         node.attribute = best_attribute
         partition_values = X[:, best_attribute]
         partition_values = np.floor(partition_values / (256/self.branch_factor))
@@ -68,7 +68,7 @@ class DecisionTree(Classifier):
         for i in range(self.branch_factor):
             rows = np.where(partition_values==i)
 
-            print(f"creating node at depth {depth+1}")
+            print(f"creating node at depth {depth+1}                     ", end="\r")
             child = Node(branch_factor=self.branch_factor)
             node.children.append(child)
             self.populate_node(child, depth + 1, X[rows], y[rows])

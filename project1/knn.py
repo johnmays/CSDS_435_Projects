@@ -14,26 +14,25 @@ class KNearestNeighbor(Classifier):
 
     @property
     def name(self):
-        return "K-Nearest Neighbors"
+        return "KNN"
 
     def train(self, training_data: np.ndarray, training_labels: np.ndarray) -> None:
         self.examples = training_data
         self.labels = training_labels
+        print("Done preparing KNN!")
 
     def infer(self, testing_data: np.ndarray) -> np.ndarray:
         inferred_labels = []
 
+        print("Predicting unseen samples with KNN...")
         for i in tqdm(range(len(testing_data))):
             instance = testing_data[i]
             knearest = []
 
-            distances = np.zeros(len(self.examples))
-            for j in range(len(self.examples)):
-                distances[j] = distance(instance, self.examples[j])
+            distances = np.linalg.norm(self.examples - instance, axis=1)
             kdistances = nsmallest(self.k, distances)
-            for j in range(len(self.examples)):
-                if distances[j] in kdistances:
-                    knearest.append(self.labels[j])
+            for j in range(self.k):
+                knearest.append(self.labels[np.where(distances == kdistances[j])[0][0]])
             
             inferred_labels.append(stats.mode(knearest)[0][0])
 
