@@ -95,9 +95,12 @@ def print_digit(x: np.ndarray):
     Prints MNIST image data so you can see it.
 
     Arguments:
-        x: 1d (shape = (784,)) numpy array
+        x: 1d (shape = (784,)) numpy array or 2d (shape = (28,28)) numpy array
     '''
-    x_img = vector2matrix(x)
+    if np.shape(x) == (784,):
+        x_img = vector2matrix(x)
+    else:
+        x_img = x
     plt.imshow(x_img, cmap='gray_r')
 
 def distance(x1: np.ndarray, x2: np.ndarray) -> float:
@@ -167,7 +170,6 @@ def sample_data(X: np.ndarray, y: np.ndarray=None, p=0.10):
         return X[rand_indices,:]
     else:
         return X[rand_indices,:], y[rand_indices]
-    
 
 def cross_validation_split(X, y, folds=5):
     if type(X) is not np.ndarray or type(y) is not np.ndarray:
@@ -190,3 +192,15 @@ def cross_validation_split(X, y, folds=5):
         y_test = y[i:j]
         data += ((X_train, y_train, X_test, y_test),)
     return data
+
+def get_matrix_dataset(X):
+    X_2D = np.zeros(shape=(np.shape(X)[0],28,28))
+    for i, x in enumerate(X):
+        X_2D[i] = vector2matrix(x)
+    return X_2D
+
+def encode_keras_predictions(y_hat):
+    y_hat_new = np.zeros(np.shape(y_hat)[0])
+    for i, prediction in enumerate(y_hat):
+        y_hat_new[i] = np.argmax(prediction)
+    return y_hat_new
