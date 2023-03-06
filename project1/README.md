@@ -13,7 +13,13 @@ You must have a python version with the following packages installed:
 - tqdm
 
 # Running Code:
-All of our .py files should be in one directory.  You may either call individual classifiers like so:
+All of our .py files should be in one directory.
+
+training.csv should be in a directory named "data".  The "data" directory should be on the same level as all of the .py files.
+
+You can simply run compare.py to output the three figures in our writeup and compare all the models.  By default, it will run 5-fold cross-validation split on all 6 models, but you can change that at the head of the file.  It takes about twenty minutes to run it all on my 2020 Macbook Pro.
+
+You can also call individual classifiers like so, if you need to.
 
 ```
 from naivebayes import NaiveBayes
@@ -29,4 +35,4 @@ nbayes.fit(X_train, y_train)
 nbayes.infer(X_test)
 ```
 
-Or you can simply run compare.py.
+predict.py is the file that outputs the CSV for the testing data.

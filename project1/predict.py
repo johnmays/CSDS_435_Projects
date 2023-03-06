@@ -3,9 +3,9 @@ Generate a CSV of predictions for testing data using our best classifier.
 """
 from util import load_data
 
-from svm import SVM
+from cnn import ConvolutionalNN
 
-best_classifier = SVM
+best_classifier = ConvolutionalNN
 training_data, training_labels = load_data("data/training.csv")
 testing_data = load_data("data/testing.csv")
 
