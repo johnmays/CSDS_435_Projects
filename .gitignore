@@ -8,3 +8,13 @@ pycache
 
 # directories
 data/
+
+# latex
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.gz
+
+# numpy storage
+*.npy

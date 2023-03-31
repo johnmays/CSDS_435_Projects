@@ -44,3 +44,15 @@ def generate_statistics(X,vocab):
     print("# Number of Tokens: {}".format(n))
     print("# Average Number of Words per Tweet: {}".format(round((num_words/m),3)))
     print("# Top 5 Legal Tokens: {}".format(vocab[np.flip(np.argsort(np.sum(X, axis=0)))[0:5]]))
+
+def distance1(x1,x2):
+    """
+    nonlocal edit distance
+    """
+    return np.sum(np.abs(x1-x2))/np.sum(x1+x2)
+
+def distance2(x1,x2):
+    """
+    Euclidean distance
+    """
+    return np.sqrt(np.sum(np.power((x1-x2), 2)))
