@@ -6,7 +6,7 @@ from typing import Tuple
 import matplotlib.pyplot as plt
 import re
 
-stopwords = ["a", "an", "the", "is", "to", "for", "in", "of", "and", "on", '']
+stopwords = ["a", "an", "the", "is", "to", "for", "in", "of", "and", "on", 'you','']
 
 def load_data(path: str, stopwords = ["a", "the", "is"]): 
     print('Importing data...')
@@ -14,9 +14,11 @@ def load_data(path: str, stopwords = ["a", "the", "is"]):
     lines = []
     with open(path, newline='\n') as file:
         lines = file.readlines()
-    # take last column, take out punctuation, make lowercase, split into list of words
+    # take last column, take out punctuation, links, and hashtag characters, make lowercase, split into list of words
     for i, line in enumerate(lines):
-        words_in_a_line = re.sub(r'!|:|,|\.|\|', '', line.split('|')[2]).lower().split(' ')
+        line = line.split('|')[2] 
+        formatted_line = re.sub(r'!|:|,|\.|\|#', '', re.sub(r'http\S+', '', line))
+        words_in_a_line = formatted_line.lower().split(' ')
         lines[i] = remove_stopwords(words_in_a_line, stopwords)
     vocab = np.unique(np.concatenate(lines).flat)
     # creating data vector X:
@@ -43,7 +45,7 @@ def generate_statistics(X,vocab):
     print("# Number of Words (Total): {}".format(num_words))
     print("# Number of Tokens: {}".format(n))
     print("# Average Number of Words per Tweet: {}".format(round((num_words/m),3)))
-    print("# Top 5 Legal Tokens: {}".format(vocab[np.flip(np.argsort(np.sum(X, axis=0)))[0:5]]))
+    print("# Top 5 Legal Tokens: {}".format(vocab[np.flip(np.argsort(np.sum(X, axis=0)))[0:50]]))
 
 def distance1(x1,x2):
     """
