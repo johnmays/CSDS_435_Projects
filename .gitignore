@@ -18,3 +18,6 @@ data/
 
 # numpy storage
 *.npy
+
+# generated files:
+*.txt

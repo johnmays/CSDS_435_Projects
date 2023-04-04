@@ -6,6 +6,8 @@ from typing import Tuple
 import matplotlib.pyplot as plt
 import re
 
+plt.rcParams['figure.dpi'] = 100
+
 stopwords = ['', "wasn't", 'there', 'been', 'they', 'until', 'yourself', 'that', 'themselves', 'into', 'where', 'he', 'both', "it's", 'too', 'under', 'no', 'in', 'the', 'me', 'which', 'do', 'i', 'own', 'their', 'him', "that'll", 'up', '&amp;', 'same', 'at', 'a', 'rt', "aren't", 'who', 'on', 'we', 'being', 'can', 'against', 'your', 'she', 'again', 'whom', 'will', 'as', 'did', 'has', "isn't", 'few', 'through', 'down', "should've", "you'll", 'myself', 'himself', 'such', 'am', 'tip', 'most', 'but', 'while', 'to', 'if', "weren't", "won't", 'us', 'and', 'how', 'be', 'each', 'some', 'may', 'says', 'about', 'for', 'any', 'only', 'are', 'his', 'with', 'by', 'here', "doesn't", 'all', 'then', 'of', 'hers', 'them', 'or', 'theirs', 'because', 'having', 'itself', 'what', 'yourselves', "shouldn't", 'its', 'were', 'during', "didn't", 'further', 'nor', 'out', 'had', "you'd", 'not', 'you', 'could', 'our', 'my', 'other', 'herself', 'after', 'her', 'those', 'why', 'have', "hasn't", "you're", 'once', 'doing', 'below', 'yours', "she's", '--', 'is', 'off', 'an', 'via', "hadn't", 'from', 'ours', 'so', "wouldn't", "you've", 'this', 'over', 'it', 'between', 'when', "haven't", 'more', 'before', "couldn't", 'than', 'very', 'these', 'ourselves', "don't", 'above', 'does', 'was', 'should', 'rt', 'would', 'w/', 'just', '\r\n']
 
 def load_data(path: str, stopwords = stopwords): 
@@ -60,7 +62,8 @@ def distance2(x1,x2):
     return np.sqrt(np.sum(np.power((x1-x2), 2)))
 
 def create_distance_matrix(X:np.ndarray, distance_type=1) -> np.ndarray:
-    assert distance_type in (1,2)
+    if distance_type not in (1,2):
+        raise ValueError('distance type should either be 1 or 2 (as ints).')
     if distance_type == 1:
         distance_measure = distance1
     else:
@@ -74,3 +77,57 @@ def create_distance_matrix(X:np.ndarray, distance_type=1) -> np.ndarray:
             distance_matrix[j,i] = distance_matrix[i,j]
     print('done with distance metric {}!'.format(str(distance_type)))
     return distance_matrix
+
+def create_distance_matrices(X):
+    distance_matrix_1 = create_distance_matrix(X,distance_type=1)
+    distance_matrix_2 = create_distance_matrix(X,distance_type=2)
+    return distance_matrix_1, distance_matrix_2
+
+def save_distance_matrices(distance_matrix_1, distance_matrix_2, save_type='npy'):
+    if save_type not in ('npy', 'txt'):
+        raise ValueError("save_type should either be 'npy' or 'txt'.")
+    if save_type is 'npy':
+        with open('distance_matrices.npy', 'wb') as file:
+            np.save(file, distance_matrix_1)
+            np.save(file, distance_matrix_2)
+    else: # then txt:
+        # writes to txt file with separating character "," and a newline between the two matrices
+        with open('distance_matrix_1.txt', 'w') as file:
+            for i in range(np.shape(distance_matrix_1)[0]):
+                file.write(str(list(distance_matrix_1[i]))[1:-1])
+        with open('distance_matrix_2.txt', 'w') as file:
+            for i in range(np.shape(distance_matrix_2)[0]):
+                file.write(str(list(distance_matrix_2[i]))[1:-1])
+
+def load_distance_matrices():
+    with open('distance_matrices.npy', 'rb') as file:
+        distance_matrix_1 = np.load(file)
+        distance_matrix_2 = np.load(file)
+    return distance_matrix_1, distance_matrix_2
+
+def unique_distances(distance_matrix):
+    # takes only the unique distances (bottom triangle section with the diagonal) from the distance matrix and returns them as a list
+    m,n = distance_matrix.shape
+    if m!=n:
+        raise ValueError('distance_matrix should be square.')
+    distances = []
+    for i in range(m):
+        for j in range(i+1):
+            distances.append(distance_matrix[i,j])
+    return np.array(distances)
+
+def plot_distance_distributions(distance_matrix_1, distance_matrix_2):
+    distances_1 = unique_distances(distance_matrix_1)
+    distances_2 = unique_distances(distance_matrix_2)
+    fig, axes = plt.subplots(2, 1)
+    fig.set_size_inches(6,6)
+    fig.tight_layout()
+    axes[0].hist(distances_1, bins=40, color=purples[4])
+    axes[0].set_title('Distribution of Distances under Measure 1')
+    axes[0].set_ylabel('Num instances')
+
+    axes[1].hist(distances_2, bins=40, color=purples[4])
+    axes[1].set_title('Distribution of Distances under Measure 2')
+    axes[1].set_xlabel('Distance')
+    axes[1].set_ylabel('Num instances')
+    plt.show();
