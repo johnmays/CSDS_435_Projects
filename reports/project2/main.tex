@@ -11,40 +11,60 @@
 
 \title{\textbf{CSDS 435: Project 2}}
 \author{John Mays}
-\date{04/02/23, Dr. Li}
+\date{04/04/23, Dr. Li}
 
 \begin{document}
 
 \maketitle
 
-\section{Dataset Summary}
+\section{Introduction}
+\section{Methods}
+\subsection{Distance Measures}
+\subsubsection{Normalized Unordered Edit Distance}
+$$d_{1}(x,y)=\frac{\sum_{k}x_k-y_k}{\sum_{k}x_k+y_k}$$
+The intuition behind this was, when I was considering how you compare strings, I was reminded of edit distance (both for words and sentences).  Of course, I realized that edit distance required an ordered string, and our bag-of-words model doesn't preserve the order.  But I thought, very simply, the difference between two vectors is essentially a version of edit distance that does not pay attention to order (hence ``unordered'').  But I also thought two four-word sentences with two words in common are about as near as two six-word sentences with three words in common, or at least that this might be a good hypothesis to test since my other distance measure \textit{does not} treat the data this way.  Hence, I normalize the distance by dividing by the total number of words in both.  This distance measure is $\frac{\text{\# of words not in common}}{\text{\# total number of words in both sentences}}$.  Therfore, the minimum value ($d_{1}(x,x)$) is zero, and the maximum value (for vectors with no words in common) is one.
+
+\subsubsection{Euclidean Distance}
+$$d_{2}(x,y)=\sqrt{\sum_{k}(x_k-y_k)^{2}}$$
+Euclidean distance seemed intuitive.  It will, as opposed to my first distance measure, attribute greater distances on average to longer tweets.  Two sixty-word tweets will be much farther apart than two ten-word tweets (assuming they each have nothing in common).
+
+\section{Data}
+\subsection{Dataset Summary}
 \begin{tabular}{|c|c|c|c|}
     \hline
     \textbf{\# Num of Tweets} & \textbf{\# Num of Words (total)} & \textbf{\# Num of Tokens} & \textbf{\# Avg Num of Words}\\
     \hline
-    4,061&48,233&13,685&11.877\\
+    4,061&32,612&9,609&8.031\\
     \hline
 \end{tabular}
-\subsection{Top Five Legal Tokens:}
-\begin{enumerate}
-    \item \textit{``you''}
-    \item \textit{``rt''}
-    \item \textit{``your''}
-    \item \textit{``are''}
-    \item \textit{``this''}
-\end{enumerate}
-\subsection{Stopwords:}
+\subsubsection*{Top Five Legal Tokens:}
+\begin{minipage}{0.5\textwidth}
+    \begin{enumerate}
+        \item \textit{``health''}
+        \item \textit{``getfit''}
+        \item \textit{``new''}
+        \item \textit{``@cnnhealth''}
+        \item \textit{``today's''}
+    \end{enumerate}
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+    \begin{enumerate}
+        \item[6.] \textit{``cancer''}
+        \item[7.] \textit{``know''}
+        \item[8.] \textit{``kids''}
+        \item[9.] \textit{``@drsanjaygupta''}
+        \item[10.] \textit{``ebola''}
+    \end{enumerate}
+\end{minipage}
+
+
+\subsubsection{Stopwords:}
+% old # of words: 48,233
 After seeing what common words were in the dataset, I decided to add some of them to the stopwords, but not every common pronoun or common preposition.  I decided to leave words like ``you'' and ``are'' in because these words are encoded with information.  ``are'' is present tense and might appear on more optimistic tweets more often thant ``were'', similarly to ``you'' which could belong to outwardly critical tweets more often.  ``a'' and ``an'' are pretty neutral, but other common stopwords may not have been.  Here are the stopwords I currently use:\\
 \newline
 \textit{"a", "an", "the", "is", "to", "for", "in", "of", "and", "on"}
 
+\section{Results}
+\section{Conclusion}
 
-\section{Distance Measures}
-\subsection{Normalized Unordered Edit Distance}
-$$d_{1}(x,y)=\frac{\sum_{k}x_k-y_k}{\sum_{k}x_k+y_k}$$
-The intuition behind this was, when I was considering how you compare strings, I was reminded of edit distance (both for words and sentences).  Of course, I realized that edit distance required an ordered string, and our bag-of-words model doesn't preserve the order.  But I thought, very simply, the difference between two vectors is essentially a version of edit distance that does not pay attention to order (hence ``unordered'').  But I also thought two four-word sentences with two words in common are about as near as two six-word sentences with three words in common, or at least that this might be a good hypothesis to test since my other distance measure \textit{does not} treat the data this way.  Hence, I normalize the distance by dividing by the total number of words in both.  This distance measure is $\frac{\text{\# of words not in common}}{\text{\# total number of words in both sentences}}$.  Therfore, the minimum value ($d_{1}(x,x)$) is zero, and the maximum value (for vectors with no words in common) is one.
-
-\subsection{Euclidean Distance}
-$$d_{2}(x,y)=\sqrt{\sum_{k}(x_k-y_k)^{2}}$$
-Euclidean distance seemed intuitive.  It will, as opposed to my first distance measure, attribute greater distances on average to longer tweets.  Two sixty-word tweets will be much farther apart than two ten-word tweets (assuming they each have nothing in common).
 \end{document}
