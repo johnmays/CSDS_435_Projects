@@ -8,6 +8,8 @@ pycache
 
 # directories
 data/
+venv/
+submissions/
 
 # latex
 *.aux
@@ -15,6 +17,7 @@ data/
 *.fls
 *.log
 *.gz
+*.out
 
 # numpy storage
 *.npy
