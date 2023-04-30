@@ -67,10 +67,10 @@ if __name__ == '__main__':
         print('================')
         print(f'{name}:')
         print('================')
-        for fold in folds:
+        for i, fold in enumerate(folds):
             trainset, testset = fold
             # print statistics for this fold and this algo
-            print(f'Fold {fold}: ')
-            results = run(predictor, trainset)
-            display(results)
+            print(f'Fold {i+1}: ')
+            # results = run(predictor, trainset)
+            # display(results)
 
