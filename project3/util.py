@@ -7,7 +7,7 @@ from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
 from matrix_factorization import matrix_factorization
-import time
+import time, math
 from surprise import accuracy
 from surprise.prediction_algorithms.predictions import Prediction
 from surprise.model_selection import KFold
@@ -106,3 +106,49 @@ def run_mf(data, K, **kwargs) -> List[Result]:
                 pass
         res.append(Result(pred, time.time() - t))
     return res
+
+
+# Compare
+def compare(p_ratings: List[Prediction], p_truth: List[Prediction]):
+    p_dict = {}
+    for p in p_truth:
+        arr = p_dict.get(p.uid)
+        if arr is None:
+            p_dict[p.uid] = {p.iid: p.est}
+        else:
+            arr[p.iid] = p.est
+
+    rmse = mae = n = 0
+    for p in p_ratings:
+        r2 = p.est
+        r1 = p_dict.get(p.uid, {}).get(p.iid)
+        if not r1 is None:
+            rmse += pow(r2 - r1, 2)
+            mae += abs(r2 - r1)
+            n += 1
+    rmse = math.sqrt(rmse / n)
+    mae /= n
+    return rmse, mae
+
+
+def compare_all(names, predictions):
+    col_w = max(5, max([len(n) for n in names]))
+    names = [n + " " * (col_w - len(n)) for n in names]
+    prec = 1e3
+    rmse = [[" " * col_w] * len(names) for _ in names]
+    mae = [[" " * col_w] * len(names) for _ in names]
+    for i, ps1 in enumerate(predictions):
+        for j, ps2 in enumerate(predictions[i + 1 :]):
+            j += i + 1
+            rmse_ij, mae_ij = compare(ps1, ps2)
+            s = str(int(rmse_ij * prec) / prec)
+            rmse[i][j] = rmse[j][i] = s + " " * (col_w - len(s))
+            s = str(int(mae_ij * prec) / prec)
+            mae[i][j] = mae[j][i] = s + " " * (col_w - len(s))
+    print(" |".join(["RMSE" + " " * (col_w - 4)] + names))
+    for n, row in zip(names, rmse):
+        print(" |".join([n] + row))
+    print()
+    print(" |".join(["MAE" + " " * (col_w - 3)] + names))
+    for n, row in zip(names, mae):
+        print(" |".join([n] + row))
