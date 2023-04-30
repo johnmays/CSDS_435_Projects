@@ -12,7 +12,7 @@ from surprise import accuracy
 from surprise.prediction_algorithms.predictions import Prediction
 from surprise.model_selection import KFold
 
-from neuralnetwork import create_model
+from neural_network import create_model
 
 
 def load_data(path: str):
