@@ -70,6 +70,22 @@ def get_fold_matrices(data):
     return Rs
 
 
+def get_xy(data, full_tr):
+    res = []
+    for trainset, testset in fold(data):
+        ratings = trainset.build_testset()
+        x_tr = [
+            (full_tr.to_inner_uid(e[0]), full_tr.to_inner_iid(e[1])) for e in ratings
+        ]
+        y_tr = [e[2] for e in ratings]
+        x_te = [
+            (full_tr.to_inner_uid(e[0]), full_tr.to_inner_iid(e[1])) for e in testset
+        ]
+        y_te = [e[2] for e in testset]
+        res.append((np.array(x_tr), np.array(y_tr), np.array(x_te), np.array(y_te)))
+    return res
+
+
 # Get predictions for test datasets on matrix factorizations
 def run_mf(data, K, **kwargs):
     Rs = get_fold_matrices(data)
