@@ -27,9 +27,13 @@ def load_data(path: str):
 Results = namedtuple("Results", "rmse mae")
 
 
+def fold(data):
+    return KFold(n_splits=5, random_state=666).split(data)
+
+
 def run(algo, data) -> Results:
     res = Results([], [])
-    for trainset, testset in KFold(n_splits=5, random_state=666).split(data):
+    for trainset, testset in fold(data):
         # train and test algorithm.
         algo.fit(trainset)
         predictions = algo.test(testset)
@@ -38,6 +42,16 @@ def run(algo, data) -> Results:
         res.rmse.append(accuracy.rmse(predictions, verbose=False))
         res.mae.append(accuracy.mae(predictions, verbose=False))
     return res
+
+
+def get_fold_matrices(data):
+    Rs = []
+    for trainset, testset in fold(data):
+        R = [[0] * trainset.n_items for _ in range(trainset.n_users)]
+        for entry in trainset.all_ratings():
+            R[entry[0]][entry[1]] = entry[2]
+        Rs.append(R)
+    return Rs
 
 
 def display(res: Results):
