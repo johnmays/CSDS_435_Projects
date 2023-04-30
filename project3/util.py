@@ -3,9 +3,11 @@ Utility functions for CSDS 435 Project 3.
 """
 
 from collections import namedtuple
+from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
 from matrix_factorization import matrix_factorization
+import time
 from surprise import accuracy
 from surprise.prediction_algorithms.predictions import Prediction
 from surprise.model_selection import KFold
@@ -30,26 +32,30 @@ def fold(data):
     return KFold(n_splits=5, random_state=666).split(data)
 
 
-Index = namedtuple("Index", "uid iid")
+Result = namedtuple("Result", "preds time")
 
 
 # Run a surprise algorithm on the data
-def run(algo, data):
+def run(algo, data) -> List[Result]:
     res = []
     for trainset, testset in fold(data):
         # train and test algorithm.
+        t = time.time()
         algo.fit(trainset)
-        res.append(algo.test(testset))
+        res.append(Result(algo.test(testset), time.time() - t))
     return res
 
 
 # Display the results of a surprise algorithm
-def display(res):
-    rows = ["RMSE", "MAE"]
+def display(res: List[Result]):
+    rows = ["RMSE", "MAE", "Time(s)"]
     data = [
-        [foo(r, verbose=False) for r in res] for foo in [accuracy.rmse, accuracy.mae]
-    ]
-    cols = [""] + [f"Fold {i}" for i in range(len(res))]
+        [foo(r.preds, verbose=False) for r in res]
+        for foo in [accuracy.rmse, accuracy.mae]
+    ] + [[r.time for r in res]]
+    for d in data:
+        d.append(sum(d) / len(d))
+    cols = [""] + [f"Fold {i}" for i in range(len(res))] + ["Avg"]
     col_w = max([len(s) for s in rows + cols])
     cols = [c + " " * (col_w - len(c)) for c in cols]
     print(" |".join(cols))
@@ -59,17 +65,7 @@ def display(res):
         print(" |".join(d))
 
 
-# Convert data folds into rating matrices
-def get_fold_matrices(data):
-    Rs = []
-    for trainset, testset in fold(data):
-        R = [[0] * trainset.n_items for _ in range(trainset.n_users)]
-        for entry in trainset.all_ratings():
-            R[entry[0]][entry[1]] = entry[2]
-        Rs.append(R)
-    return Rs
-
-
+# Convert data folds into lists of ratings
 def get_xy(data, full_tr):
     res = []
     for trainset, testset in fold(data):
@@ -87,17 +83,19 @@ def get_xy(data, full_tr):
 
 
 # Get predictions for test datasets on matrix factorizations
-def run_mf(data, K, **kwargs):
-    Rs = get_fold_matrices(data)
-    Ps = [np.random.rand(len(R), K) for R in Rs]
-    Qs = [np.random.rand(len(R[0]), K) for R in Rs]
-
-    for i in range(len(Rs)):
-        Ps[i], Qs[i] = matrix_factorization(Rs[i], Ps[i], Qs[i], K, **kwargs)
-    Rs = [np.dot(P, Q.T) for P, Q in zip(Ps, Qs)]
-
+def run_mf(data, K, **kwargs) -> List[Result]:
     res = []
-    for R, (trainset, testset) in zip(Rs, fold(data)):
+    for trainset, testset in fold(data):
+        t = time.time()
+        R = [[0] * trainset.n_items for _ in range(trainset.n_users)]
+        for entry in trainset.all_ratings():
+            R[entry[0]][entry[1]] = entry[2]
+
+        P = np.random.rand(trainset.n_users, K)
+        Q = np.random.rand(trainset.n_items, K)
+        P, Q = matrix_factorization(R, P, Q, K, **kwargs)
+        R = np.dot(P, Q.T)
+
         pred = []
         for uid, iid, r in testset:
             try:
@@ -106,5 +104,5 @@ def run_mf(data, K, **kwargs):
                 pred.append(Prediction(uid, iid, r, R[i_uid][i_iid], {}))
             except ValueError:
                 pass
-        res.append(pred)
+        res.append(Result(pred, time.time() - t))
     return res
