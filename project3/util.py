@@ -46,16 +46,27 @@ def run(algo, data) -> List[Result]:
     return res
 
 
-# Display the results of a surprise algorithm
-def display(res: List[Result]):
-    rows = ["RMSE", "MAE", "Time(s)"]
+def get_data(res: List[Result]):
     data = [
         [foo(r.preds, verbose=False) for r in res]
         for foo in [accuracy.rmse, accuracy.mae]
     ] + [[r.time for r in res]]
     for d in data:
         d.append(sum(d) / len(d))
-    cols = [""] + [f"Fold {i}" for i in range(len(res))] + ["Avg"]
+    return data
+
+
+def get_avg(res: List[Result]):
+    return [d[-1] for d in get_data(res)]
+
+
+# Display the results of a surprise algorithm
+def display(data, cols=None):
+    rows = ["RMSE", "MAE", "Time(s)"]
+    if cols is None:
+        cols = [f"Fold {i}" for i in range(len(data))] + ["Avg"]
+        data = get_data(data)
+    cols = [""] + cols
     col_w = max([len(s) for s in rows + cols])
     cols = [c + " " * (col_w - len(c)) for c in cols]
     print(" |".join(cols))
@@ -63,6 +74,11 @@ def display(res: List[Result]):
         d = [r] + [str(int(d * 1e3) / 1e3) for d in d]
         d = [d + " " * (col_w - len(d)) for d in d]
         print(" |".join(d))
+
+
+def display_all(res, cols):
+    data = [get_avg(r) for r in res]
+    display([[d[i] for d in data] for i in range(3)], cols=cols)
 
 
 # Convert data folds into lists of ratings
