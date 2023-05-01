@@ -18,7 +18,7 @@ class NNPredictor(Predictor):
         pass
 """
 
-def create_model(num_users, num_movies, num_factors, structure='dense1', lr=1e-3):
+def create_model(num_users, num_movies, num_factors, structure='dense3', lr=5e-3):
     if structure not in ('dense1', 'dense2', 'dense3', 'dot'):
         raise ValueError('structure must be dense1, dense2, or dot')
 

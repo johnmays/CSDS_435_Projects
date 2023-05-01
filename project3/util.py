@@ -116,7 +116,7 @@ def run_mf(data, K, **kwargs) -> List[Result]:
 
 
 # Train & get predictions fo
-def run_nn(data, structure='dense1', lr=1e-3) -> List[Result]:
+def run_nn(data, structure='dense3', lr=5e-3) -> List[Result]:
     res = []
     full_tr = data.build_full_trainset()
     folds = get_xy(data, full_tr) # importing under special format for NN
