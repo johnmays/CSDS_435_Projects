@@ -116,7 +116,7 @@ def run_mf(data, K, **kwargs) -> List[Result]:
 
 
 # Train & get predictions fo
-def run_nn(data, **kwargs) -> List[Result]:
+def run_nn(data, structure='dense1', lr=1e-3) -> List[Result]:
     res = []
     full_tr = data.build_full_trainset()
     folds = get_xy(data, full_tr) # importing under special format for NN
@@ -130,7 +130,7 @@ def run_nn(data, **kwargs) -> List[Result]:
         max_movies = np.max([np.max(X_train[1]), np.max(X_test[1])])+1
         # fitting:
         num_factors =50 # (hyperparameter)
-        model = create_model(max_users, max_movies, num_factors)
+        model = create_model(max_users, max_movies, num_factors, structure=structure, lr=lr)
         model.fit(x=X_train, y=y_train, batch_size=64, epochs=5, verbose=1) # validation_data=(X_test, y_test)
         # predicting:
         t = time.time()
