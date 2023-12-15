@@ -53,9 +53,9 @@ def get_avg(res: List[Result]):
 
 # Display the results of a surprise algorithm
 def display(data, cols=None):
-    rows = ["RMSE", "MAE", "Time(s)"]
+    rows = ["RMSE", "MAE", "Time"]
     if cols is None:
-        cols = [f"Fold {i}" for i in range(len(data))] + ["Avg"]
+        cols = [f"Fold{i}" for i in range(len(data))] + ["Avg"]
         data = get_data(data)
     cols = [""] + cols
     col_w = max([len(s) for s in rows + cols])
@@ -70,6 +70,16 @@ def display(data, cols=None):
 def display_all(res, cols):
     data = [get_avg(r) for r in res]
     display([[d[i] for d in data] for i in range(3)], cols=cols)
+
+
+def tune(param, vals, cls, data):
+    res, cols = [], []
+    for val in vals:
+        cols.append(f"{val}")
+        kwargs = {param: val, "verbose": False}
+        res.append(run(cls(**kwargs), data))
+    print(param)
+    display_all(res, cols=cols)
 
 
 # Convert data folds into lists of ratings
@@ -116,22 +126,26 @@ def run_mf(data, K, **kwargs) -> List[Result]:
 
 
 # Train & get predictions fo
-def run_nn(data, structure='dense3', lr=5e-3) -> List[Result]:
+def run_nn(data, structure="dense3", lr=5e-3) -> List[Result]:
     res = []
     full_tr = data.build_full_trainset()
-    folds = get_xy(data, full_tr) # importing under special format for NN
-    
+    folds = get_xy(data, full_tr)  # importing under special format for NN
+
     for fold in folds:
-        X_train,y_train,X_test,y_test = fold
+        X_train, y_train, X_test, y_test = fold
         # reshape:
         X_train = [X_train[:, 0], X_train[:, 1]]
         X_test = [X_test[:, 0], X_test[:, 1]]
-        max_users = np.max([np.max(X_train[0]), np.max(X_test[0])])+1
-        max_movies = np.max([np.max(X_train[1]), np.max(X_test[1])])+1
+        max_users = np.max([np.max(X_train[0]), np.max(X_test[0])]) + 1
+        max_movies = np.max([np.max(X_train[1]), np.max(X_test[1])]) + 1
         # fitting:
-        num_factors =50 # (hyperparameter)
-        model = create_model(max_users, max_movies, num_factors, structure=structure, lr=lr)
-        model.fit(x=X_train, y=y_train, batch_size=64, epochs=5, verbose=1) # validation_data=(X_test, y_test)
+        num_factors = 50  # (hyperparameter)
+        model = create_model(
+            max_users, max_movies, num_factors, structure=structure, lr=lr
+        )
+        model.fit(
+            x=X_train, y=y_train, batch_size=64, epochs=5, verbose=0
+        )  # validation_data=(X_test, y_test)
         # predicting:
         t = time.time()
         y_pred = model.predict(x=X_test)
@@ -143,7 +157,7 @@ def run_nn(data, structure='dense3', lr=5e-3) -> List[Result]:
             r_uid = full_tr.to_raw_uid(uid)
             r_iid = full_tr.to_raw_iid(iid)
             pred.append(Prediction(r_uid, r_iid, y_test[i], y_pred[i], {}))
-        res.append(Result(pred, time.time()-t))
+        res.append(Result(pred, time.time() - t))
     return res
 
 
@@ -184,10 +198,10 @@ def compare_all(names, predictions):
             rmse[i][j] = rmse[j][i] = s + " " * (col_w - len(s))
             s = str(int(mae_ij * prec) / prec)
             mae[i][j] = mae[j][i] = s + " " * (col_w - len(s))
-    print(" |".join(["RMSE" + " " * (col_w - 4)] + names))
+    print("|".join(["RMSE" + " " * (col_w - 4)] + names))
     for n, row in zip(names, rmse):
-        print(" |".join([n] + row))
+        print("|".join([n] + row))
     print()
-    print(" |".join(["MAE" + " " * (col_w - 3)] + names))
+    print("|".join(["MAE" + " " * (col_w - 3)] + names))
     for n, row in zip(names, mae):
-        print(" |".join([n] + row))
+        print("|".join([n] + row))
