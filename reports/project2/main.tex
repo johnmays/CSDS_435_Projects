@@ -10,30 +10,32 @@
 \usepackage{hyperref}
 % \usetikzlibrary{matrix, positioning}
 
-\title{\textbf{CSDS 435: Project 2}}
+\title{\textbf{CSDS 435: Project 2\\\large{Clustering Methods and Distance Measures for Finding Tweet Topics}}}
 \author{John Mays, ``Group 13''}
-\date{Due 04/04/23, Submitted 04/05/23; Dr. Li}
+\date{Submitted 04/05/23 for Dr. Jing Li \\ Revised 12/16/23 for the NYC Office of Management \& Budget}
 
 \begin{document}
 \maketitle
 \section{Introduction}
-In this paper, I explore two (because I am one student) clustering methods along with two distance measures.  The two clustering methods I chose were k-Medoids and Complete-Link Hierarchical Clustering, because both accepted pre-generated distance kernels.  This went in line with the concurrent goal of also studying distance measures.  I compare the algorithms and the distance measures by metrics of separation and cohesion, and engage in hyperparameter tuning and visualization in order to explore these methods.
+In this paper, the initial task at hand is to inspect the tweets from the \@ cnn twitter account in order to generally assess what kind of topics CNN has tweeted about in the past.  The accompanying research question is to ask what generic clustering methods work best for this task. I explore two clustering methods along with two distance measures.  The two clustering methods I chose were k-Medoids and Complete-Link Hierarchical Clustering, because both algorithms accept pre-generated distance kernels.  This was necessary for the concurrent goal of also studying distance measures.  I compare the algorithms and the distance measures by metrics of separation and cohesion, and engage in hyperparameter tuning and visualization in order to explore these methods.
 \section{Methods}
 \subsection{Distance Measures}
 \subsubsection{Normalized Unordered Edit Distance}
 $$d_{1}(x,y)=\frac{\sum_{k}x_k-y_k}{\sum_{k}x_k+y_k}$$
-The intuition behind this was, when I was considering how you compare strings, I was reminded of edit distance (both for words and sentences).  Of course, I realized that edit distance required an ordered string, and our bag-of-words model doesn't preserve the order.  But I thought, very simply, the difference between two vectors is essentially a version of edit distance that does not pay attention to order (hence ``unordered'').  But I also thought two four-word sentences with two words in common are about as near as two six-word sentences with three words in common, or at least that this might be a good hypothesis to test since my other distance measure \textit{does not} treat the data this way.  Hence, I normalize the distance by dividing by the total number of words in both.  This distance measure is $\frac{\text{\# of words not in common}}{\text{\# total number of words in both sentences}}$.  Therefore, the minimum value ($d_{1}(x,x)$) is zero, and the maximum value (for vectors with no words in common) is one.
+This is a new distance measure of my design. When considering how you compare strings, one is reminded of edit distance (both for words and sentences).  Of course, edit distance requires an ordered string, and the bag-of-words model doesn't preserve the order; however, the difference between two vectors is essentially a version of edit distance that does not pay attention to order (hence ``unordered'').  Consider this as well: two four-word sentences with two words in common are about as near as two six-word sentences with three words in common, or at least that this might be a good hypothesis to test, since the other distance measure in this paper \textit{does not} treat the data this way.  Hence, the distance is normalized through the operation of dividing by the difference by the total number of words in both.  This distance measure is essentially $$\frac{\text{\# of words not in common}}{\text{\# total number of words in both sentences}}$$ Therefore, the minimum value ($d_{1}(x,x)$) is zero, and the maximum value (for two vectors with no words in common) is one.
 
 \subsubsection{Euclidean Distance}
 $$d_{2}(x,y)=\sqrt{\sum_{k}(x_k-y_k)^{2}}$$
-Euclidean distance seemed intuitive.  It will, as opposed to my first distance measure, attribute greater distances on average to longer tweets.  Two sixty-word tweets will be much farther apart than two ten-word tweets (assuming they each have nothing in common).
-\subsubsection{Comparisons}
-The distributions are extremely different.  The Euclidean distance's ($d_{2}$) is almost normal with $\mu \approx 4$, while $d_{1}$ has an extraordinary amount of 1.0 (no words in common) and then just a few thousand distances clustered around 0.9.
+Euclidean distance seemes like an intuitive choice, although it would also seem to place far too much importance on the ordering of words in the tweets.  It will, as opposed to normalized unordered edit distance, generally attribute greater distances to longer tweets.  Two totally different sixty-word tweets will be much farther apart than two ten-word tweets (assuming they each have nothing in common).
+
+\subsubsection{Comparing Distributions}
+The distributions of the distance measures across the dataset are extremely different.  The Euclidean distance ($d_{2}$)'s distribution is approximately Gaussian with $\mu \approx 4$, while $d_{1}$ has a outlying concentration of 1.0 (no words in common) and then just a few thousand distances clustered around 0.9.  This implies that most tweets used entirely different sets of words, and when they had words in common, they were not often more than a few.
 \begin{center}
 	\includegraphics[scale=0.50]{images/distance_distributions_horizontal.png}
 \end{center}
 
 \subsection{Choosing Hyperparameters}
+Both of my clustering methods required me to choose $k$, the number of clusters, which is also considered the primary hyperparameter for both.  In order to do this, I tried to observe how different metrics and objective functions varied with $k$.  Some results were surprising, and revealed to me that different distances worked very differently with different clustering algorithms.  Observing the sum-squared error ($SSE$) and the between-cluster sums of squares ($BSS$) turned out not to be very helpful, but observing the silhouette score was.  In general, a silhouette score closer to one is better.  The only two combinations that demonstrated a positive correlation between silhouette score and k were \{Distance 1 and Hierarchical\} and \{Distance 2 and k-Medoids\}. The other two were negatively correlated, and less so.  For $k$-Medoids I chose a default $k$ of 50 as that is the max silhouette achieved with either distance.  And for Hierarchical, smaller choices were not giving me coherent clusters, so I chose a much higher $k$ based on the $d_1$ figure: 600.
 \subsubsection{Choosing $k$ for k-Medoids:}
 \begin{center}
 	\includegraphics[scale=0.40]{images/d1_ks.png}
@@ -44,7 +46,6 @@ The distributions are extremely different.  The Euclidean distance's ($d_{2}$) i
 \begin{center}
 	\includegraphics[scale=0.40]{images/d1_f_ks.png}\includegraphics[scale=0.40]{images/d2_f_ks.png}
 \end{center}
-Both of my methods required me to choose $k$ (number of clusters).  In order to do this, I tried to observe how different metrics and objective functions varied with $k$.  Some results were surprising, and revealed to me that different distances worked very differently with different clustering algorithms.  Observing $SSE$ and $BSS$ turned out not to be very helpful, but observing the silhouette score was.  In general, a silhouette score closer to one is better.  The only two combinations that demonstrated a positive correlation between silhouette score and k were \{Distance 1 and Hierarchical\} and \{Distance 2 and k-Medoids\}. The other two were negatively correlated, and less so.  For $k$-Medoids I chose a default $k$ of 50 as that is the max silhouette achieved with either distance.  And for Hierarchical, smaller choices were not giving me coherent clusters, so I chose a much higher $k$ based on the $d_1$ figure: 600.
 \section{Data}
 \subsection{Dataset Summary}
 \begin{tabular}{|c|c|c|c|}
@@ -131,7 +132,7 @@ When choosing what to keep and what to toss, I had a hard time deciding.  Common
 \end{minipage}
 \begin{minipage}{0.35\textwidth}
 \includegraphics[scale=0.35]{images/size_dist_hc_d2.png}\end{minipage}\\
-\subsection*{Cluster Deciphering}
+\subsection{Cluster Deciphering}
 For Complete-Link Hierarchical Clustering, I had what looked like the best clusters, so here some of them are:\\
 \underline{Note:} this was run with $k=600$ and $d_1$.\\
 \newline
@@ -155,8 +156,8 @@ For Complete-Link Hierarchical Clustering, I had what looked like the best clust
 \end{tabular}\\
 \newline
 There are some really nice clusters here. \textbf{Cluster 3} has a prevailing theme of diet and weight loss.  \textbf{Cluster 1} seems to be about modern weight problems. \textbf{Cluster 109} is mostly scare-tweets about breast cancer and survival rates.  \textbf{Cluster 86} is about the ebola outbreak in America.
-\subsection{Cluster Visualizations:}
-Since there are several thousand pixels, and the details are finer, the sorted distance matrices can be found in the appendix at a large scale\dots
+% \subsection{Cluster Visualizations:}
+% Since there are several thousand pixels, and the details are finer, the sorted distance matrices can be found in the appendix at a large scale\dots
 \subsection{Cluster Consistency:}
 I used entropy and purity to compare k-Medoids to Complete Link Hierarchical Clustering, both using distance measure 2 (Euclidean).  Here are my results:
 \begin{itemize}
@@ -178,10 +179,10 @@ All team members agree with the specified effort.
 $[1]$ \href{https://towardsdatascience.com/text-pre-processing-stop-words-removal-using-different-libraries-f20bac19929a}{\textit{Text pre-processing: Stop words removal using different libraries(NLTK)}}\\
 $[2]$ \textit{Introduction to Data Mining (2nd ed.)} Tan et al.\\
 $[3]$ \href{https://arxiv.org/abs/1705.00995}{\textit{Fuzzy Approach Topic Discovery in Health and Medical Corpora} by Karami, Gangopadhyay, Zhou, and Kharrazi}
-\pagebreak
-\section*{Appendix}
-\includegraphics[scale=1]{images/dist_matrix_km_d1.png}\\
-\includegraphics[scale=1]{images/dist_matrix_km_d2.png}\\
-\includegraphics[scale=0.8]{images/dist_matrix_hc_d1.png}\\
-\includegraphics[scale=0.8]{images/dist_matrix_hc_d2.png}\\
+% \pagebreak
+% \section*{Appendix}
+% \includegraphics[scale=1]{images/dist_matrix_km_d1.png}\\
+% \includegraphics[scale=1]{images/dist_matrix_km_d2.png}\\
+% \includegraphics[scale=0.8]{images/dist_matrix_hc_d1.png}\\
+% \includegraphics[scale=0.8]{images/dist_matrix_hc_d2.png}\\
 \end{document}
